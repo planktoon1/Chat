@@ -15,24 +15,25 @@ provider:
         - "Fn::GetAtt": [Chats, Arn]
   environment:
     STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
   apiKeys: # List of API keys to be used by your service API Gateway REST API
     - ${self:provider.stage}-private
 
 functions:
-  # handleConnections:
-  #   description: Websocket Connection Handler. Handles new connections and disconnections
-  #   handler: src/index.handleConnection
-  #   events:
-  #     - websocket:
-  #         route: $connect
-  #     - websocket:
-  #         route: $disconnect
-  # handleMessages:
-  #   description: Websocket Message Handler. Handles all websocket messages
-  #   handler: src/index.handleConnection
-  #   events:
-  #     - websocket:
-  #         route: $default
+  handleConnections:
+    description: Websocket Connection Handler. Handles new connections and disconnections
+    handler: src/index.handleConnection
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+  handleMessages:
+    description: Websocket Message Handler. Handles all websocket messages
+    handler: src/index.handleConnection
+    events:
+      - websocket:
+          route: $default
 
 resources:
   Resources:
