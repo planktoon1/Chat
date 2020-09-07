@@ -1,0 +1,44 @@
+service: ServerlessChat
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs12.x
+  region: eu-central-1
+  timeout: 6 # optional, in seconds, default is 6
+  iamManagedPolicies:
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - "Fn::GetAtt": [Chats, Arn]
+  environment:
+    STAGE: ${self:provider.stage}
+  apiKeys: # List of API keys to be used by your service API Gateway REST API
+    - ${self:provider.stage}-private
+
+functions:
+  # handleConnections:
+  #   description: Websocket Connection Handler. Handles new connections and disconnections
+  #   handler: src/index.handleConnection
+  #   events:
+  #     - websocket:
+  #         route: $connect
+  #     - websocket:
+  #         route: $disconnect
+  # handleMessages:
+  #   description: Websocket Message Handler. Handles all websocket messages
+  #   handler: src/index.handleConnection
+  #   events:
+  #     - websocket:
+  #         route: $default
+
+resources:
+  Resources:
+    Chats:
+      Type: "AWS::DynamoDB::Table"
+      Properties: ${file(./resources/dynamo_tables.json):Chats}
+
+plugins:
+  - serverless-plugin-typescript

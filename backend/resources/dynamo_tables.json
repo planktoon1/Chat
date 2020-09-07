@@ -1,0 +1,56 @@
+{
+    "Chats": {
+        "TableName": "Chats",
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "ChatId",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "SortKey",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "GSI1PK",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "GSI1SK",
+                "AttributeType": "S"
+            }
+        ],
+        "KeySchema": [
+            {
+                "AttributeName": "ChatId",
+                "KeyType": "HASH"
+            },
+            {
+                "AttributeName": "SortKey",
+                "KeyType": "RANGE"
+            }
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "GSI1",
+                "KeySchema": [
+                    {
+                        "AttributeName": "GSI1PK",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "GSI1SK",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "INCLUDE",
+                    "NonKeyAttributes": [
+                        "ChatId",
+                        "State"
+                    ]
+                }
+            }
+        ]
+    }
+}
