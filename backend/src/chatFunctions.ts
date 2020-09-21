@@ -1,5 +1,6 @@
 import AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
+import { handleCommonErrors } from "./dynamoDB/handleCommonErrors";
 AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
 
@@ -8,8 +9,82 @@ export const addGroupMembers = async (params) => {};
 export const removeGroupMembers = async (params) => {};
 export const setChatMembersState = async (params) => {};
 export const createPublicChat = async (params) => {};
-export const getMessagesInChat = async (params) => {};
+
+interface GetAllChatsForUserInput {
+  userId: string;
+}
+
 export const getAllChatsForUser = async (params) => {};
+
+interface GetMessagesInChatInput {
+  chatId: string;
+  /** Inclusive. Date as a string value in ISO format. Default: omitted */
+  after?: string;
+  /** Exclusive. Date as a string value in ISO format. Default: current datetime */
+  before?: string;
+  limit?: number;
+  /** The message id of the message where the operation stopped, inclusive of the previous result set. Use this message id to start a new operation, excluding this message in the new request. */
+  lastEvaluatedMessage?: string;
+}
+
+/**
+ * Get messages from a specific chat.
+ * @param {Object} params - The input values for the function.
+ */
+export const getMessagesInChat = async (params: GetMessagesInChatInput) => {
+  const tableName = "Chats"; //TODO: Dynamic table name
+  const after = params.after ? params.after : "-271821-04-20T00:00:00.000Z";
+  const before = params.before ? params.before : new Date().toISOString();
+
+  try {
+    const messageQueryOutput: AWS.DynamoDB.DocumentClient.QueryOutput = await ddb
+      .query({
+        TableName: tableName,
+        Limit: params.limit,
+        ScanIndexForward: false,
+        KeyConditionExpression:
+          "#41a10 = :chatId And #41a11 BETWEEN :after AND :before",
+        ExpressionAttributeValues: {
+          ":chatId": params.chatId,
+          ":after": `message_${after}`,
+          ":before": `message_${before}`,
+        },
+        ExpressionAttributeNames: {
+          "#41a10": "ChatId",
+          "#41a11": "SortKey",
+        },
+        ExclusiveStartKey: params.lastEvaluatedMessage
+          ? {
+              ChatId: params.chatId,
+              SortKey: params.lastEvaluatedMessage,
+            }
+          : undefined,
+      })
+      .promise();
+    const result = {
+      chatId: params.chatId,
+      count: messageQueryOutput.Count,
+      messages: messageQueryOutput.Items?.map((dbMessage) => ({
+        message: dbMessage.Message,
+        state: dbMessage.State,
+        messageId: dbMessage.SortKey,
+        sender: dbMessage.Sender,
+        createdAt: dbMessage.CreatedAt,
+      })),
+      LastEvaluatedMessage: messageQueryOutput?.LastEvaluatedKey?.SortKey,
+    };
+    return result;
+  } catch (error) {
+    handleCommonErrors(error);
+    // TODO: Handle errors in a uniform way across the service
+    return {
+      chatId: params.chatId,
+      count: 0,
+      messages: [],
+      LastEvaluatedMessage: undefined,
+    };
+  }
+};
 
 interface CreateGroupChatInput {
   chatName: string;
@@ -69,8 +144,8 @@ export const createGroupChat = async (params: CreateGroupChatInput) => {
       .promise();
     console.log(`Successfully created group chat '${params.chatName}'`);
     return chatId;
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    handleCommonErrors(error);
   }
 };
 
@@ -129,8 +204,8 @@ export const createDirectChat = async (params: CreateDirectChatInput) => {
     console.log(
       `Successfully created direct chat between: '${params.member1}' and '${params.member2}'`
     );
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    handleCommonErrors(error);
   }
 };
 
@@ -161,7 +236,7 @@ export const createMessage = async (params: CreateMessageInput) => {
     console.log(
       `Successfully created message '${sortKey}' in chat '${params.chatId}' sender: '${params.sender}'`
     );
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    handleCommonErrors(error);
   }
 };

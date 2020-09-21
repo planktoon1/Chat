@@ -1,0 +1,545 @@
+{
+  "ModelName": "Chat",
+  "ModelMetadata": {
+    "Author": "Frederik Østergaard",
+    "DateCreated": "Sep 06, 2020, 02:29 PM",
+    "DateLastModified": "Sep 07, 2020, 03:19 PM",
+    "Description": "Generic chat data structure",
+    "Version": "1.0"
+  },
+  "DataModel": [
+    {
+      "TableName": "Chats",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "ChatId",
+          "AttributeType": "S"
+        },
+        "SortKey": {
+          "AttributeName": "SortKey",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "CreatedAt",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Sender",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "State",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "ChatName",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "MaxMembers",
+          "AttributeType": "N"
+        },
+        {
+          "AttributeName": "Message",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "GSI1PK",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "GSI1SK",
+          "AttributeType": "S"
+        }
+      ],
+      "GlobalSecondaryIndexes": [
+        {
+          "IndexName": "GSI1",
+          "KeyAttributes": {
+            "PartitionKey": {
+              "AttributeName": "GSI1PK",
+              "AttributeType": "S"
+            },
+            "SortKey": {
+              "AttributeName": "GSI1SK",
+              "AttributeType": "S"
+            }
+          },
+          "Projection": {
+            "ProjectionType": "INCLUDE",
+            "NonKeyAttributes": [
+              "ChatId",
+              "State"
+            ]
+          }
+        }
+      ],
+      "TableData": [
+        {
+          "ChatId": {
+            "S": "DC_id1#id2"
+          },
+          "SortKey": {
+            "S": "message_2020-09-06T12:41:56.968Z_messId1"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:41:56.968Z"
+          },
+          "Sender": {
+            "S": "id1"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "Very private message... hello there"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "DC_id1#id2"
+          },
+          "SortKey": {
+            "S": "message_2020-09-06T13:41:56.968Z_messId2"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T13:41:56.968Z"
+          },
+          "Sender": {
+            "S": "id2"
+          },
+          "State": {
+            "S": "sent"
+          },
+          "Message": {
+            "S": "Well hello there!"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "DC_id1#id2"
+          },
+          "SortKey": {
+            "S": "metaData"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "ChatName": {
+            "S": "Direct chat"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "DC_id1#id2"
+          },
+          "SortKey": {
+            "S": "member_id1"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "GSI1PK": {
+            "S": "member_id1"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "DC_id1#id2"
+          },
+          "SortKey": {
+            "S": "member_id2"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "GSI1PK": {
+            "S": "member_id2"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "metaData"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "ChatName": {
+            "S": "Global Room 1"
+          },
+          "MaxMembers": {
+            "N": "500"
+          },
+          "GSI1PK": {
+            "S": "publicChats"
+          },
+          "GSI1SK": {
+            "S": "PC_id02001"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T12:41:56.968Z_messId3"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T12:41:56.968Z"
+          },
+          "Sender": {
+            "S": "id5"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "Hey all :)"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T12:42:05.968Z_messId4"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T12:42:05.968Z"
+          },
+          "Sender": {
+            "S": "id6"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "Heya! Welcome back"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T12:45:05.968Z_messId5"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T12:45:05.968Z"
+          },
+          "Sender": {
+            "S": "id5"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "I'm so confused by datamodelling."
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "member_id1"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "State": {
+            "S": "banned"
+          },
+          "GSI1PK": {
+            "S": "member_id1"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "member_id3"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "State": {
+            "S": "shadowBanned"
+          },
+          "GSI1PK": {
+            "S": "member_id3"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "member_id4"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "GSI1PK": {
+            "S": "member_id4"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "member_id5"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "GSI1PK": {
+            "S": "member_id5"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "PC_id02001"
+          },
+          "SortKey": {
+            "S": "member_id6"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "GSI1PK": {
+            "S": "member_id6"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "metaData"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "ChatName": {
+            "S": "Rainbow Raiders"
+          },
+          "GSI1PK": {
+            "S": "groupChats"
+          },
+          "GSI1SK": {
+            "S": "GC_id01001"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "member_id5"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "State": {
+            "S": "admin"
+          },
+          "GSI1PK": {
+            "S": "member_id5"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "member_id6"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "State": {
+            "S": "admin"
+          },
+          "GSI1PK": {
+            "S": "member_id6"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "member_id7"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "GSI1PK": {
+            "S": "member_id7"
+          },
+          "GSI1SK": {
+            "S": "2020-09-06T12:05:56.968Z"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T10:45:05.968Z_messId6"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T10:45:05.968Z"
+          },
+          "Sender": {
+            "S": "member_id5"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "Morning bois, you ready for some raiding?"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T10:45:23.968Z_messId7"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T10:45:23.968Z"
+          },
+          "Sender": {
+            "S": "member_id7"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "Morning!"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T10:46:23.968Z_messId8"
+          },
+          "CreatedAt": {
+            "S": "2020-09-06T12:05:56.968Z"
+          },
+          "Sender": {
+            "S": "member_id6"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "heya. ready in 5"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T10:54:23.968Z_messId9"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T10:54:23.968Z"
+          },
+          "Sender": {
+            "S": "member_id6"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "Oki ready, let's go"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T11:34:23.968Z_messId10"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T11:34:23.968Z"
+          },
+          "Sender": {
+            "S": "member_id5"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "GG bois, cya"
+          }
+        },
+        {
+          "ChatId": {
+            "S": "GC_id01001"
+          },
+          "SortKey": {
+            "S": "message_2020-09-05T11:34:36.968Z_messId11"
+          },
+          "CreatedAt": {
+            "S": "2020-09-05T11:34:36.968Z"
+          },
+          "Sender": {
+            "S": "member_id6"
+          },
+          "State": {
+            "S": "read"
+          },
+          "Message": {
+            "S": "GG WP"
+          }
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      }
+    }
+  ]
+}
