@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { handleCommonErrors } from "./dynamoDB/handleCommonErrors";
 AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
-
+const tableName = "Chats"; //TODO: Dynamic table name
 export const markMessagesAsRead = async (params) => {};
 export const addGroupMembers = async (params) => {};
 export const removeGroupMembers = async (params) => {};
@@ -12,9 +12,69 @@ export const createPublicChat = async (params) => {};
 
 interface GetAllChatsForUserInput {
   userId: string;
+  lastEvaluated?: string;
+  limit?: number;
+  /** Inclusive. Date as a string value in ISO format. Default: omitted */
+  after?: string;
+  /** Exclusive. Date as a string value in ISO format. Default: current datetime */
+  before?: string;
 }
 
-export const getAllChatsForUser = async (params) => {};
+/**
+ * Get all chats for a specific user.
+ * @param {Object} params - The input values for the function.
+ */
+export const getAllChatsForUser = async (params: GetAllChatsForUserInput) => {
+  const after = params.after ? params.after : "-271821-04-20T00:00:00.000Z";
+  const before = params.before ? params.before : new Date().toISOString();
+  try {
+    const messageQueryOutput: AWS.DynamoDB.DocumentClient.QueryOutput = await ddb
+      .query({
+        TableName: tableName,
+        ScanIndexForward: false,
+        IndexName: "GSI1",
+        Limit: params.limit,
+        KeyConditionExpression:
+          "#5eb50 = :5eb50 And #41a11 BETWEEN :after AND :before",
+        ExpressionAttributeValues: {
+          ":5eb50": `member_${params.userId}`,
+          ":after": after,
+          ":before": before,
+        },
+        ExpressionAttributeNames: {
+          "#5eb50": "GSI1PK",
+          "#41a11": "GSI1SK",
+        },
+        ExclusiveStartKey: params.lastEvaluated
+          ? {
+              GSI1PK: `member_${params.userId}`,
+              GSI1SK: params.lastEvaluated,
+            }
+          : undefined,
+      })
+      .promise();
+
+    const result = {
+      userId: params.userId,
+      count: messageQueryOutput.Count,
+      chats: messageQueryOutput.Items?.map((dbChat) => ({
+        chatId: dbChat.ChatId,
+        createdAt: dbChat.GSI1SK,
+      })),
+      lastEvaluated: messageQueryOutput?.LastEvaluatedKey?.GSI1SK,
+    };
+    return result;
+  } catch (error) {
+    handleCommonErrors(error);
+    // TODO: Handle errors in a uniform way across the service
+    return {
+      userId: params.userId,
+      count: 0,
+      chats: [],
+      lastEvaluated: undefined,
+    };
+  }
+};
 
 interface GetMessagesInChatInput {
   chatId: string;
@@ -32,7 +92,6 @@ interface GetMessagesInChatInput {
  * @param {Object} params - The input values for the function.
  */
 export const getMessagesInChat = async (params: GetMessagesInChatInput) => {
-  const tableName = "Chats"; //TODO: Dynamic table name
   const after = params.after ? params.after : "-271821-04-20T00:00:00.000Z";
   const before = params.before ? params.before : new Date().toISOString();
 
