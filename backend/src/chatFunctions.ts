@@ -10,14 +10,17 @@ export const removeGroupMembers = async (params) => {};
 export const setChatMembersState = async (params) => {};
 export const createPublicChat = async (params) => {};
 
-interface GetAllChatsForUserInput {
-  userId: string;
-  lastEvaluated?: string;
+interface BaseResponse {
   limit?: number;
   /** Inclusive. Date as a string value in ISO format. Default: omitted */
   after?: string;
   /** Exclusive. Date as a string value in ISO format. Default: current datetime */
   before?: string;
+  lastEvaluated?: string;
+}
+
+interface GetAllChatsForUserInput extends BaseResponse {
+  userId: string;
 }
 
 /**
@@ -76,15 +79,8 @@ export const getAllChatsForUser = async (params: GetAllChatsForUserInput) => {
   }
 };
 
-interface GetMessagesInChatInput {
+interface GetMessagesInChatInput extends BaseResponse {
   chatId: string;
-  /** Inclusive. Date as a string value in ISO format. Default: omitted */
-  after?: string;
-  /** Exclusive. Date as a string value in ISO format. Default: current datetime */
-  before?: string;
-  limit?: number;
-  /** The message id of the message where the operation stopped, inclusive of the previous result set. Use this message id to start a new operation, excluding this message in the new request. */
-  lastEvaluatedMessage?: string;
 }
 
 /**
@@ -112,10 +108,10 @@ export const getMessagesInChat = async (params: GetMessagesInChatInput) => {
           "#41a10": "ChatId",
           "#41a11": "SortKey",
         },
-        ExclusiveStartKey: params.lastEvaluatedMessage
+        ExclusiveStartKey: params.lastEvaluated
           ? {
               ChatId: params.chatId,
-              SortKey: params.lastEvaluatedMessage,
+              SortKey: params.lastEvaluated,
             }
           : undefined,
       })
@@ -130,7 +126,7 @@ export const getMessagesInChat = async (params: GetMessagesInChatInput) => {
         sender: dbMessage.Sender,
         createdAt: dbMessage.CreatedAt,
       })),
-      LastEvaluatedMessage: messageQueryOutput?.LastEvaluatedKey?.SortKey,
+      LastEvaluated: messageQueryOutput?.LastEvaluatedKey?.SortKey,
     };
     return result;
   } catch (error) {
@@ -140,7 +136,7 @@ export const getMessagesInChat = async (params: GetMessagesInChatInput) => {
       chatId: params.chatId,
       count: 0,
       messages: [],
-      LastEvaluatedMessage: undefined,
+      LastEvaluated: undefined,
     };
   }
 };
