@@ -1,4 +1,5 @@
 import AWS from "aws-sdk";
+import { Key } from "aws-sdk/clients/dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import { handleCommonErrors } from "./dynamoDB/handleCommonErrors";
 AWS.config.update({ region: "eu-central-1" });
@@ -8,26 +9,25 @@ export const markMessagesAsRead = async (params) => {};
 export const addGroupMembers = async (params) => {};
 export const removeGroupMembers = async (params) => {};
 export const setChatMembersState = async (params) => {};
-export const createPublicChat = async (params) => {};
 
-interface BaseResponse {
+interface BaseGetInput {
   limit?: number;
   /** Inclusive. Date as a string value in ISO format. Default: omitted */
   after?: string;
   /** Exclusive. Date as a string value in ISO format. Default: current datetime */
   before?: string;
-  lastEvaluated?: string;
+  lastEvaluated?: any;
 }
 
-interface GetAllChatsForUserInput extends BaseResponse {
+interface GetChatsForUserInput extends BaseGetInput {
   userId: string;
+  lastEvaluated?: Key;
 }
-
 /**
  * Get all chats for a specific user.
  * @param {Object} params - The input values for the function.
  */
-export const getAllChatsForUser = async (params: GetAllChatsForUserInput) => {
+export const getChatsForUser = async (params: GetChatsForUserInput) => {
   const after = params.after ? params.after : "-271821-04-20T00:00:00.000Z";
   const before = params.before ? params.before : new Date().toISOString();
   try {
@@ -49,10 +49,7 @@ export const getAllChatsForUser = async (params: GetAllChatsForUserInput) => {
           "#41a11": "GSI1SK",
         },
         ExclusiveStartKey: params.lastEvaluated
-          ? {
-              GSI1PK: `member_${params.userId}`,
-              GSI1SK: params.lastEvaluated,
-            }
+          ? params.lastEvaluated
           : undefined,
       })
       .promise();
@@ -64,7 +61,7 @@ export const getAllChatsForUser = async (params: GetAllChatsForUserInput) => {
         chatId: dbChat.ChatId,
         createdAt: dbChat.GSI1SK,
       })),
-      lastEvaluated: messageQueryOutput?.LastEvaluatedKey?.GSI1SK,
+      lastEvaluated: messageQueryOutput?.LastEvaluatedKey,
     };
     return result;
   } catch (error) {
@@ -79,10 +76,10 @@ export const getAllChatsForUser = async (params: GetAllChatsForUserInput) => {
   }
 };
 
-interface GetMessagesInChatInput extends BaseResponse {
+interface GetMessagesInChatInput extends BaseGetInput {
   chatId: string;
+  lastEvaluated?: string;
 }
-
 /**
  * Get messages from a specific chat.
  * @param {Object} params - The input values for the function.
@@ -126,7 +123,7 @@ export const getMessagesInChat = async (params: GetMessagesInChatInput) => {
         sender: dbMessage.Sender,
         createdAt: dbMessage.CreatedAt,
       })),
-      LastEvaluated: messageQueryOutput?.LastEvaluatedKey?.SortKey,
+      lastEvaluated: messageQueryOutput?.LastEvaluatedKey?.SortKey,
     };
     return result;
   } catch (error) {
@@ -136,7 +133,7 @@ export const getMessagesInChat = async (params: GetMessagesInChatInput) => {
       chatId: params.chatId,
       count: 0,
       messages: [],
-      LastEvaluated: undefined,
+      lastEvaluated: undefined,
     };
   }
 };
@@ -188,6 +185,8 @@ export const createGroupChat = async (params: CreateGroupChatInput) => {
                   ChatId: chatId,
                   SortKey: "metaData",
                   ChatName: params.chatName,
+                  // GSI1PK: `groupChats`, // ## Can be added if the access pattern "List all group chats" should be supported
+                  // GSI1SK: chatId,
                 },
               },
             },
@@ -198,6 +197,58 @@ export const createGroupChat = async (params: CreateGroupChatInput) => {
       })
       .promise();
     console.log(`Successfully created group chat '${params.chatName}'`);
+    return chatId;
+  } catch (error) {
+    handleCommonErrors(error);
+  }
+};
+
+interface CreatePublicChatInput {
+  chatName: string;
+  members: string[];
+  maxMembers: number;
+}
+export const createPublicChat = async (params: CreatePublicChatInput) => {
+  const uuid = uuidv4();
+  const chatId = `PC_${uuid}`;
+  const now = new Date().toISOString();
+
+  const memberPutRequests = params.members.map((memberId) => ({
+    PutRequest: {
+      Item: {
+        CreatedAt: now,
+        ChatId: chatId,
+        SortKey: `member_${memberId}`,
+        GSI1PK: `member_${memberId}`,
+        GSI1SK: now,
+      },
+    },
+  }));
+
+  try {
+    await ddb
+      .batchWrite({
+        RequestItems: {
+          [tableName]: [
+            {
+              PutRequest: {
+                Item: {
+                  ChatId: chatId,
+                  ChatName: params.chatName,
+                  MaxMembers: params.maxMembers,
+                  CreatedAt: now,
+                  SortKey: "metaData",
+                  GSI1PK: `publicChats`, // ## Access pattern: "List all public chats" supported
+                  GSI1SK: chatId,
+                },
+              },
+            },
+            ...memberPutRequests,
+          ],
+        },
+      })
+      .promise();
+    console.log(`Successfully created public chat '${params.chatName}'`);
     return chatId;
   } catch (error) {
     handleCommonErrors(error);
