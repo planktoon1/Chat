@@ -1,17 +1,16 @@
 import AWS from "aws-sdk";
-import {
-  addMembersToGroupChat,
-  removeMembersFromGroup,
-  setChatMembersState,
-} from "./chatFunctions";
+import { setMessageState } from "./chatFunctions";
+
 AWS.config.update({ region: "eu-central-1" });
 
 const app = async () => {
-  setChatMembersState({
+  setMessageState({
     chatId: "GC_921a0f1f-9e0e-4768-a836-fdbf79534b41",
-    memberId: "newAdmin1",
-    state: "admin",
+    messageId:
+      "message_2020-09-07T15:03:39.389Z_0766125e-2c36-4538-81e6-f026bf50e60e",
+    state: "read",
   });
+
   // addMembersToGroupChat({
   //   chatId: "GC_921a0f1f-9e0e-4768-a836-fdbf79534b41",
   //   adminIds: [],

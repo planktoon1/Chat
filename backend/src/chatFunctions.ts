@@ -1,11 +1,41 @@
 import AWS from "aws-sdk";
 import { Key } from "aws-sdk/clients/dynamodb";
-import { v4 as uuidv4 } from "uuid";
 import { handleCommonErrors } from "./dynamoDB/handleCommonErrors";
+import { createId } from "./utility/createId";
 AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
 const tableName = "Chats"; //TODO: Dynamic table name
-export const markMessagesAsRead = async (params) => {};
+
+interface SetMessageStateInput {
+  chatId: string;
+  messageId: string;
+  state: string;
+}
+export const setMessageState = async (params: SetMessageStateInput) => {
+  try {
+    await ddb
+      .update({
+        TableName: tableName,
+        Key: {
+          ChatId: params.chatId,
+          SortKey: params.messageId,
+        },
+        UpdateExpression: "SET #f0100 = :f0100",
+        ExpressionAttributeValues: {
+          ":f0100": params.state,
+        },
+        ExpressionAttributeNames: {
+          "#f0100": "State",
+        },
+      })
+      .promise();
+    console.info(
+      `Successfully updated state of message "${params.messageId}" to: "${params.state}"`
+    );
+  } catch (error) {
+    handleCommonErrors(error);
+  }
+};
 
 interface SetChatMembersStateInput {
   chatId: string;
@@ -265,8 +295,7 @@ interface CreateGroupChatInput {
 }
 export const createGroupChat = async (params: CreateGroupChatInput) => {
   const tableName = "Chats"; //TODO: Dynamic table name
-  const uuid = uuidv4();
-  const chatId = `GC_${uuid}`;
+  const chatId = `GC_${createId()}`;
   const now = new Date().toISOString();
 
   const adminPutRequests = params.admins.map((adminId) => ({
@@ -329,8 +358,7 @@ interface CreatePublicChatInput {
   maxMembers: number;
 }
 export const createPublicChat = async (params: CreatePublicChatInput) => {
-  const uuid = uuidv4();
-  const chatId = `PC_${uuid}`;
+  const chatId = `PC_${createId()}`;
   const now = new Date().toISOString();
 
   const memberPutRequests = params.members.map((memberId) => ({
@@ -443,8 +471,7 @@ interface CreateMessageInput {
 export const createMessage = async (params: CreateMessageInput) => {
   const tableName = "Chats"; //TODO: Dynamic table name
   const now = new Date().toISOString();
-  const uuid = uuidv4(); // added to the sortkey to avoid the unlikely event that two messages are sent in the exact same milisecond and therfore overwrites eachother
-  const sortKey = `message_${now}_${uuid}`;
+  const sortKey = `message_${now}_${createId()}`; // added to the sortkey to avoid the unlikely event that two messages are sent in the exact same milisecond and therfore overwrites eachother
   try {
     await ddb
       .put({
