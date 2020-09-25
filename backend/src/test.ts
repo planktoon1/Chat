@@ -1,11 +1,16 @@
 import AWS from "aws-sdk";
-import { addMembersToGroupChat, removeMembersFromGroup } from "./chatFunctions";
+import {
+  addMembersToGroupChat,
+  removeMembersFromGroup,
+  setChatMembersState,
+} from "./chatFunctions";
 AWS.config.update({ region: "eu-central-1" });
 
 const app = async () => {
-  removeMembersFromGroup({
+  setChatMembersState({
     chatId: "GC_921a0f1f-9e0e-4768-a836-fdbf79534b41",
-    memberIds: ["newMember1", "newMember2"],
+    memberId: "newAdmin1",
+    state: "admin",
   });
   // addMembersToGroupChat({
   //   chatId: "GC_921a0f1f-9e0e-4768-a836-fdbf79534b41",
