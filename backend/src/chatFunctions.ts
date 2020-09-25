@@ -6,8 +6,43 @@ AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
 const tableName = "Chats"; //TODO: Dynamic table name
 export const markMessagesAsRead = async (params) => {};
-export const removeGroupMembers = async (params) => {};
 export const setChatMembersState = async (params) => {};
+
+interface removeMembersFromGroupInput {
+  chatId: string;
+  memberIds: string[];
+}
+/**
+ * Add members to a group chat.
+ * @param {Object} params - The input values for the function.
+ */
+export const removeMembersFromGroup = async (
+  params: removeMembersFromGroupInput
+) => {
+  const memberRemoveRequests = params.memberIds.map((memberId) => ({
+    DeleteRequest: {
+      Key: {
+        ChatId: params.chatId,
+        SortKey: `member_${memberId}`,
+      },
+    },
+  }));
+
+  try {
+    await ddb
+      .batchWrite({
+        RequestItems: {
+          [tableName]: [...memberRemoveRequests],
+        },
+      })
+      .promise();
+    console.info(
+      `Successfully removed "${params.memberIds}" from group: "${params.chatId}"`
+    );
+  } catch (error) {
+    handleCommonErrors(error);
+  }
+};
 
 interface AddMembersToGroupChatInput {
   chatId: string;
