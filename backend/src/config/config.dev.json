@@ -1,0 +1,6 @@
+{
+    "aws": {
+        "region": "eu-central-1",
+        "chatTableName": "Chats"
+    }
+}

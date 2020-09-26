@@ -1,4 +1,6 @@
-/** Imported from 'NoSQL Workbanch for Amazon DynamoDB' */
+/**
+ * Handle common DynamoDB errors by logging approriate messages.
+ * Imported from 'NoSQL Workbanch for Amazon DynamoDB' */
 export const handleCommonErrors = (err) => {
   switch (err.code) {
     case "InternalServerError":
