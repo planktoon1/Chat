@@ -3,7 +3,8 @@ import { createId } from "../../utility/createId";
 import { handleCommonErrors } from "../handleCommonErrors";
 AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
-const tableName = "Chats"; //TODO: Dynamic table name
+import { config } from "../../config/config";
+const tableName = config.environmentConfig.aws.chatTableName;
 
 export interface CreateMessageInput {
   chatId: string;

@@ -1,8 +1,9 @@
 import AWS from "aws-sdk";
+import { config } from "../../config/config";
 import { handleCommonErrors } from "../handleCommonErrors";
 AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
-const tableName = "Chats"; //TODO: Dynamic table name
+const tableName = config.environmentConfig.aws.chatTableName;
 
 interface SetChatMembersStateInput {
   chatId: string;

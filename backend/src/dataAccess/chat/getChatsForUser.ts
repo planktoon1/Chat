@@ -4,7 +4,8 @@ import { handleCommonErrors } from "../handleCommonErrors";
 import { BaseGetInput } from "../sharedModels";
 AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
-const tableName = "Chats"; //TODO: Dynamic table name
+import { config } from "../../config/config";
+const tableName = config.environmentConfig.aws.chatTableName;
 
 export interface GetChatsForUserInput extends BaseGetInput {
   userId: string;

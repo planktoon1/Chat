@@ -3,6 +3,7 @@ import { config } from "../../config/config";
 import { handleCommonErrors } from "../handleCommonErrors";
 AWS.config.update({ region: "eu-central-1" });
 const ddb = new AWS.DynamoDB.DocumentClient();
+const tableName = config.environmentConfig.aws.chatTableName;
 
 export interface AddMembersToGroupChatInput {
   chatId: string;
@@ -16,7 +17,6 @@ export interface AddMembersToGroupChatInput {
 export const addMembersToGroupChat = async (
   params: AddMembersToGroupChatInput
 ) => {
-  const tableName = config.environmentConfig.aws.chatTableName;
   const now = new Date().toISOString();
   const memberPutRequests = params.memberIds.map((memberId) => ({
     PutRequest: {
