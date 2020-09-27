@@ -12,7 +12,10 @@
     "license": "ISC",
     "dependencies": {
         "@types/node-fetch": "^2.5.7",
+        "apollo-server-lambda": "^2.18.1",
         "aws-sdk": "^2.580.0",
+        "graphql": "^15.3.0",
+        "graphql-tools": "^6.2.3",
         "node-fetch": "^2.6.1",
         "serverless-http": "^2.4.1"
     },

@@ -20,20 +20,28 @@ provider:
     - ${self:provider.stage}-private
 
 functions:
-  handleConnections:
-    description: Websocket Connection Handler. Handles new connections and disconnections
-    handler: src/index.handleConnection
+  graphql:
+    handler: src/index.graphqlHandler
     events:
-      - websocket:
-          route: $connect
-      - websocket:
-          route: $disconnect
-  handleMessages:
-    description: Websocket Message Handler. Handles all websocket messages
-    handler: src/index.handleConnection
-    events:
-      - websocket:
-          route: $default
+      - http:
+          path: graphql
+          method: any
+          cors:
+            origin: "*"
+  # handleConnections:
+  #   description: Websocket Connection Handler. Handles new connections and disconnections
+  #   handler: src/index.handleConnection
+  #   events:
+  #     - websocket:
+  #         route: $connect
+  #     - websocket:
+  #         route: $disconnect
+  # handleMessages:
+  #   description: Websocket Message Handler. Handles all websocket messages
+  #   handler: src/index.handleConnection
+  #   events:
+  #     - websocket:
+  #         route: $default
 
 resources:
   Resources:

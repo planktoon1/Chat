@@ -1,55 +1,51 @@
-import { APIGatewayEvent } from "aws-lambda";
-import { Client } from "./dynamoDB/Client";
+import { ApolloServer, gql } from "apollo-server-lambda";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLNonNull,
+  GraphQLString,
+} from "graphql";
 
-exports.handleConnection = async (event: APIGatewayEvent) => {
-  console.log(event.requestContext);
+const schema = new GraphQLSchema({
+  query: new GraphQLObjectType({
+    name: "RootQueryType", // an arbitrary name
+    fields: {
+      // the query has a field called 'greeting'
+      greeting: {
+        // we need to know the user's name to greet them
+        args: { firstName: { type: new GraphQLNonNull(GraphQLString) } },
+        // the greeting message is a string
+        type: GraphQLString,
+        // resolve to a greeting message
+        resolve: (parent, args) => "Greeting resolver",
+      },
+    },
+  }),
+  mutation: new GraphQLObjectType({
+    name: "RootMutationType", // an arbitrary name
+    fields: {
+      changeNickname: {
+        args: {
+          firstName: { type: new GraphQLNonNull(GraphQLString) },
+          nickname: { type: new GraphQLNonNull(GraphQLString) },
+        },
+        type: GraphQLString,
+        resolve: (parent, args) => "Change nickname resolver",
+      },
+    },
+  }),
+});
 
-  switch (event.requestContext.routeKey) {
-    case `$connect`:
-      await connect(event);
-      break;
-    case `$disconnect`:
-      await disconnect(event);
-      break;
-    case `$default`:
-      break;
+const server = new ApolloServer({
+  schema,
 
-    default:
-      break;
-  }
+  // By default, the GraphQL Playground interface and GraphQL introspection
+  // is disabled in "production" (i.e. when `process.env.NODE_ENV` is `production`).
+  //
+  // If you'd like to have GraphQL Playground and introspection enabled in production,
+  // the `playground` and `introspection` options must be set explicitly to `true`.
+  playground: true,
+  introspection: true,
+});
 
-  return { statusCode: 200 };
-};
-
-const connect = async (event: APIGatewayEvent) => {
-  if (!event.requestContext.connectionId) {
-    console.error(`missing connectionId`);
-
-    return { statusCode: 500 };
-  }
-
-  const connectionId = event.requestContext.connectionId as string;
-  const connectedAt = event.requestContext.connectedAt as number;
-
-  const domain = event.requestContext.domainName;
-  const stage = event.requestContext.stage;
-  const callbackURL = `https://${domain}/${stage}`;
-
-  await new Client({
-    connectionId,
-  }).connect({ id: `1`, callbackURL, connectedAt });
-};
-
-const disconnect = async (event: APIGatewayEvent) => {
-  if (!event.requestContext.connectionId) {
-    console.error(`missing connectionId`);
-
-    return { statusCode: 500, body: "missing connectionId" };
-  }
-
-  const connectionId = event.requestContext.connectionId as string;
-
-  await new Client({
-    connectionId,
-  }).disconnect();
-};
+exports.graphqlHandler = server.createHandler();
