@@ -22,6 +22,7 @@
     "devDependencies": {
         "@types/aws-lambda": "^8.10.51",
         "jest": "^26.4.2",
+        "serverless-offline": "^6.8.0",
         "serverless-plugin-typescript": "^1.1.9",
         "ts-node": "^8.10.1",
         "typescript": "^3.8.3"
