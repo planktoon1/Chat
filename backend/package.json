@@ -12,15 +12,15 @@
     "license": "ISC",
     "dependencies": {
         "@types/node-fetch": "^2.5.7",
-        "apollo-server-lambda": "^2.18.1",
+        "aws-lambda-graphql": "^1.0.0-alpha.18",
         "aws-sdk": "^2.580.0",
         "graphql": "^15.3.0",
-        "graphql-tools": "^6.2.3",
-        "node-fetch": "^2.6.1",
-        "serverless-http": "^2.4.1"
+        "graphql-subscriptions": "^1.1.0",
+        "node-fetch": "^2.6.1"
     },
     "devDependencies": {
         "@types/aws-lambda": "^8.10.51",
+        "serverless-http": "^2.4.1",
         "jest": "^26.4.2",
         "serverless-offline": "^6.8.0",
         "serverless-plugin-typescript": "^1.1.9",

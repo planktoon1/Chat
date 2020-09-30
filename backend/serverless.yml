@@ -13,6 +13,14 @@ provider:
         - dynamodb:*
       Resource:
         - "Fn::GetAtt": [Chats, Arn]
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - "Fn::GetAtt": [ConnectionsDynamoDBTable, Arn]
+        - "Fn::GetAtt": [SubscriptionsDynamoDBTable, Arn]
+        - "Fn::GetAtt": [SubscriptionOperationsDynamoDBTable, Arn]
+        - "Fn::GetAtt": [EventsDynamoDBTable, Arn]
   environment:
     STAGE: ${self:provider.stage}
     REGION: ${self:provider.region}
@@ -20,34 +28,112 @@ provider:
     - ${self:provider.stage}-private
 
 functions:
-  graphql:
-    handler: src/index.graphqlHandler
+  httpHandler:
+    handler: src/index.handleHttp
     events:
       - http:
-          path: graphql
+          path: /
           method: any
-          cors:
-            origin: "*"
-  # handleConnections:
-  #   description: Websocket Connection Handler. Handles new connections and disconnections
-  #   handler: src/index.handleConnection
-  #   events:
-  #     - websocket:
-  #         route: $connect
-  #     - websocket:
-  #         route: $disconnect
-  # handleMessages:
-  #   description: Websocket Message Handler. Handles all websocket messages
-  #   handler: src/index.handleConnection
-  #   events:
-  #     - websocket:
-  #         route: $default
+          cors: true
+  webSocketHandler:
+    handler: src/index.handleWebSocket
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: $default
+  dynamoDBStreamHandler:
+    handler: src/index.handleDynamoDBStream
+    events:
+      - stream:
+          enabled: true
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [EventsDynamoDBTable, StreamArn]
 
 resources:
   Resources:
     Chats:
       Type: "AWS::DynamoDB::Table"
       Properties: ${file(./resources/dynamo_tables.json):Chats}
+
+    ConnectionsDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        # see DynamoDBConnectionManager
+        TableName: Connections
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          # connection id
+          - AttributeName: id
+            KeyType: HASH
+        # This one is optional (all subscription operations have 2 hours of lifetime in ttl field but enabling TTL is up to you)
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+    SubscriptionsDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        # see DynamoDBSubscriptionManager
+        TableName: Subscriptions
+        AttributeDefinitions:
+          - AttributeName: event
+            AttributeType: S
+          - AttributeName: subscriptionId
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: event
+            KeyType: HASH
+          - AttributeName: subscriptionId
+            KeyType: RANGE
+        # This one is optional (all subscription operations have 2 hours of lifetime in ttl field but enabling TTL is up to you)
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+    SubscriptionOperationsDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        # see DynamoDBSubscriptionManager
+        TableName: SubscriptionOperations
+        AttributeDefinitions:
+          - AttributeName: subscriptionId
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: subscriptionId
+            KeyType: HASH
+        # This one is optional (all subscription operations have 2 hours of lifetime in ttl field but enabling TTL is up to you)
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+    EventsDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        # see DynamoDBEventStore
+        TableName: Events
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        # see ISubscriptionEvent
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+        # This one is optional (all subscription operations have 2 hours of lifetime in ttl field but enabling TTL is up to you)
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
 
 plugins:
   - serverless-plugin-typescript
